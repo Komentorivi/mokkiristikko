@@ -11,6 +11,11 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="kuvat/ikoni-192.png">
 <link rel="apple-touch-icon" href="kuvat/ikoni-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mökkiristikko">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#edf0e8">
 <title>Mökkiristikko</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta charset="utf-8">
@@ -247,6 +252,7 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
       <h1>Mökkiristikko<small id="heroSub">Kuva-arvoitukset</small></h1>
       <div class="hero-tools">
         <select id="picker" aria-label="Valitse ristikko"></select>
+        <button class="icon" id="bFull" hidden aria-label="Avaa koko ruudulle">⛶</button>
         <button class="icon" id="bSound" aria-label="Äänet päälle tai pois">🔊</button>
       </div>
     </div>
@@ -967,6 +973,11 @@ $('bCopy').onclick = () => {
   catch (e) { fallback(); }
 };
 $('bShareClose').onclick = () => closeOv('ovShare');
+// Koko ruutu kännykällä: itch.io:n kehyksessä selaimen koko näytön tila ei toimi iPhonessa (WebKit ei tue sitä muille kuin videolle),
+// joten avataan sama ristikko omaan välilehteen julkisessa versiossa. Nappi vain kosketuslaitteella kehyksen sisällä.
+const kehyksessa = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+$('bFull').hidden = !(kehyksessa && matchMedia('(pointer: coarse)').matches);
+$('bFull').onclick = () => { if (P) save(); window.open(`${PAGES}#${TASO}-${NRO}`, '_blank', 'noopener'); };
 $('bChallenge').onclick = () => avaaJako(!!st.done);
 $('bChallengeWin').onclick = () => avaaJako(true);
 function naytaHaaste() {
