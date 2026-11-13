@@ -145,7 +145,14 @@ button:focus-visible,select:focus-visible,.li:focus-visible{outline:3px solid va
 .Q{background:var(--clue);cursor:pointer;flex-direction:column}
 .Q .m{flex:1;width:100%;display:flex;align-items:center;justify-content:center;position:relative;line-height:1;transition:background .15s,opacity .2s}
 .Q .m+.m{border-top:1px solid var(--clue-line)}
-.Q .e{display:block;max-width:88%;text-align:center;word-break:break-all;line-height:1.05}
+.Q .e{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;align-content:center;width:100%;line-height:1}
+.Q .e span{display:block;text-align:center}
+.Q .e[data-n="2"]{flex-direction:column}
+.Q .e[data-n="3"] span{width:50%}
+.Q .e[data-n="3"] span:last-child{width:100%}
+.Q.two .e[data-n="2"]{flex-direction:row}
+.Q.two .e[data-n="2"] span{width:50%}
+.Q.two .e[data-n="3"] span,.Q.two .e[data-n="3"] span:last-child{width:33%}
 .Q .num{font:800 calc(var(--cs) * .42) var(--display);color:var(--clue-ink)}
 .Q.two .num{font-size:calc(var(--cs) * .3)}
 .Q .a{position:absolute;font-size:calc(var(--cs) * .28);color:var(--clue-ink);font-weight:900;line-height:1}
@@ -603,10 +610,13 @@ function build() {
           m.className = 'm'; m.dataset.i = i;
           const e = document.createElement('span');
           if (w.pic) {
-            // 2–3 emojin arvoitus rivittyy ruudussa kahdelle riville, jotta kuvat pysyvät isoina
-            const n = graphemes(w.pic);
-            const k = ids.length > 1 ? (n === 1 ? .36 : .25) : (n === 1 ? .6 : n === 2 ? .4 : .36);
-            e.className = 'e'; e.textContent = w.pic;
+            // Mikko 13.11.2026: "aavistuksen pieniä kännykällä" -> isommat. Kiinteä asettelu (selaimen rivitys pinosi
+            // 3 emojia päällekkäin yli ruudun): 2 = päällekkäin, 3 = kaksi ylhäällä + yksi alhaalla, kahden vihjeen ruudussa rinnakkain.
+            let osat; try { osat = [...new Intl.Segmenter('fi', {granularity: 'grapheme'}).segment(w.pic)].map(x => x.segment); } catch (err) { osat = [w.pic]; }
+            const n = osat.length;
+            const k = ids.length > 1 ? (n === 1 ? .42 : n === 2 ? .3 : .22) : (n === 1 ? .7 : n === 2 ? .44 : .34);
+            e.className = 'e'; e.dataset.n = Math.min(n, 3);
+            osat.forEach(o => { const s = document.createElement('span'); s.textContent = o; e.appendChild(s); });
             e.style.fontSize = `calc(var(--cs) * ${k})`;
           } else { e.className = 'num'; e.textContent = w.num; }
           const a = document.createElement('span'); a.className = 'a ' + (w.dir === 'a' ? 'r' : 'd'); a.textContent = w.dir === 'a' ? '▸' : '▾';
