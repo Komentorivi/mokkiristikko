@@ -713,7 +713,8 @@ window.addEventListener('pagehide', save);
 /* ---------- Valinta ja liike ---------- */
 function focusKb() { const k = $('k'); k.value = ' '; try { k.focus({preventScroll: true}); } catch (e) { k.focus(); } }
 function firstOpen(i) { const cs = words[i].cells; return cs.find(([r, c]) => !st.letters[r][c] && !isLocked(r, c)) || cs.find(([r, c]) => !isLocked(r, c)) || cs[0]; }
-function selectWord(i) { dir = words[i].dir; cur = firstOpen(i); begin(); focusKb(); draw(); ensureVisible(); }
+// Sanan valinta vie sanan alkuun, jotta koko sanan kirjoittaminen osuu kohdalleen (lukitut ruudut ohitetaan kirjoittamalla)
+function selectWord(i) { dir = words[i].dir; cur = words[i].cells[0]; begin(); focusKb(); draw(); ensureVisible(); }
 function tap(r, c) {
   const o = wordOf[r][c];
   if (cur && cur[0] === r && cur[1] === c) { const other = dir === 'a' ? 'd' : 'a'; if (o[other] !== undefined) dir = other; }
@@ -723,8 +724,8 @@ function tap(r, c) {
 function moveInWord(n) {
   const wi = curIdx(); if (wi === undefined) return false;
   const cs = words[wi].cells;
-  let i = cs.findIndex(([a, b]) => a === cur[0] && b === cur[1]) + n;
-  while (i >= 0 && i < cs.length && isLocked(...cs[i])) i += n;
+  // Ei hypätä lukittujen yli (Mikko 13.11.2026): kun koko sana kirjoitetaan, kirjaimet osuvat kohdalleen
+  const i = cs.findIndex(([a, b]) => a === cur[0] && b === cur[1]) + n;
   if (i >= 0 && i < cs.length) { cur = cs[i]; return true; }
   return false;
 }
@@ -732,7 +733,7 @@ function jumpNext(fromWi) {
   const pos = order.indexOf(fromWi);
   for (let k = 1; k <= order.length; k++) {
     const i = order[(pos + k) % order.length];
-    if (!solvedW(i)) { dir = words[i].dir; cur = firstOpen(i); return; }
+    if (!solvedW(i)) { dir = words[i].dir; cur = words[i].cells[0]; return; }
   }
 }
 function ensureVisible() {
@@ -754,11 +755,9 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', () =
 /* ---------- Kirjoitus ---------- */
 function put(ch) {
   if (!cur || st.done) return;
-  if (isLocked(...cur) && !moveInWord(1)) {
-    // lukittu ruutu sanan lopussa: siirry sanan ensimmäiseen avoimeen ruutuun
-    const w0 = curIdx(), open = w0 === undefined ? null : words[w0].cells.find(([r, c]) => !isLocked(r, c));
-    if (!open) return;
-    cur = open;
+  if (isLocked(...cur)) {
+    // Lukittu (ratkaistu) kirjain ei muutu: kirjoitus vain siirtää seuraavaan ruutuun
+    begin(); const ohi = cur; moveInWord(1); save(); draw(); pop(...ohi); ensureVisible(); return;
   }
   begin();
   const wi = curIdx(), before = solvedSet();
