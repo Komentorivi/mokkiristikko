@@ -79,8 +79,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @keyframes smoke{0%{opacity:0;transform:translateY(3px) scaleX(.9)}35%{opacity:1}100%{opacity:0;transform:translateY(-6px) scaleX(1.15)}}
 .glint{animation:glint 3.5s ease-in-out infinite alternate}
 @keyframes glint{from{opacity:.35}to{opacity:.9}}
-select{font:inherit;font-size:16px;font-weight:700;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px)}
-.icon{font-size:18px;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px);box-shadow:none}
+select{font:inherit;font-size:16px;font-weight:700;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink)}
+.icon{font-size:18px;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);box-shadow:none}
 .steps{margin:12px 0 0;padding-left:1.3em;display:grid;gap:10px;font-size:17px;line-height:1.4}
 .steps li::marker{font-weight:800;color:var(--clue-ink)}
 .steps .ico{display:inline-flex;vertical-align:-4px;width:24px;height:24px;margin:0 2px;color:var(--clue-ink)}
@@ -99,7 +99,7 @@ a.icon{display:inline-flex;align-items:center;justify-content:center;text-decora
 @keyframes floatUp{from{opacity:1;transform:translate(6px,0)}to{opacity:0;transform:translate(6px,-28px)}}
 
 /* Tarttuva vihjepalkki */
-.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding-top:6px;background:var(--bg)}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding-top:6px;background:var(--bg);will-change:transform;transform:translateZ(0)}
 .bar{background:var(--bar);color:var(--bar-ink);border-radius:16px;padding:8px 14px;min-height:76px;display:flex;align-items:center;box-shadow:0 6px 18px #0000002a;position:relative;overflow:hidden}
 .bar::after{content:"";position:absolute;inset:auto -10% -18px -10%;height:30px;background:radial-gradient(60% 100% at 50% 0,#ffffff14,transparent);pointer-events:none}
 .bar .in{display:flex;align-items:center;gap:14px;width:100%;min-width:0}
@@ -747,7 +747,9 @@ function ensureVisible() {
   if (r.bottom > bottom) window.scrollBy({top: r.bottom - bottom, behavior: 'smooth'});
   else if (r.top < top) window.scrollBy({top: r.top - top, behavior: 'smooth'});
 }
-if (window.visualViewport) window.visualViewport.addEventListener('resize', () => requestAnimationFrame(ensureVisible));
+// Vain näppäimistön ollessa auki: iPhonen osoiterivi muuttaa näkymän kokoa vierittäessä, ja jokaiseen muutokseen
+// reagoiminen vieritti sivua sormen vastaisesti (nytkähtely, Mikko 13.11.2026).
+if (window.visualViewport) window.visualViewport.addEventListener('resize', () => { if (document.activeElement === $('k')) requestAnimationFrame(ensureVisible); });
 
 /* ---------- Kirjoitus ---------- */
 function put(ch) {
