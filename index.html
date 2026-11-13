@@ -754,7 +754,10 @@ function put(ch) {
   const typed = cur;
   const after = solvedSet(), newly = [...after].filter(i => !before.has(i));
   const w = wi === undefined ? null : words[wi];
-  if (w && (newly.includes(wi) || (!moveInWord(1) && w.cells.every(([r, c]) => st.letters[r][c])))) jumpNext(wi);
+  // Seuraavaan sanaan vain, kun sana on oikein (lukittuu). Väärin täytetyssä sanassa kursori jää viimeiseen ruutuun,
+  // jotta pyyhintä poistaa juuri kirjoitetun kirjaimen (Mikko 13.11.2026).
+  if (w && newly.includes(wi)) jumpNext(wi);
+  else if (w) moveInWord(1);
   save(); draw(); pop(...typed); flash(newly); ensureVisible(); checkWin();
 }
 function back() {
