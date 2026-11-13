@@ -80,6 +80,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @keyframes glint{from{opacity:.35}to{opacity:.9}}
 select{font:inherit;font-size:16px;font-weight:700;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px)}
 .icon{font-size:18px;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px);box-shadow:none}
+a.icon{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:800;line-height:1.2}
 
 /* Tila */
 .status{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;margin:12px 0 8px}
@@ -252,7 +253,7 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
       <h1>Mökkiristikko<small id="heroSub">Kuva-arvoitukset</small></h1>
       <div class="hero-tools">
         <select id="picker" aria-label="Valitse ristikko"></select>
-        <button class="icon" id="bFull" hidden aria-label="Avaa koko ruudulle">⛶</button>
+        <a class="icon" id="bFull" hidden href="https://komentorivi.github.io/mokkiristikko/" target="_top" aria-label="Avaa koko ruudulle">⛶</a>
         <button class="icon" id="bSound" aria-label="Äänet päälle tai pois">🔊</button>
       </div>
     </div>
@@ -977,7 +978,8 @@ $('bShareClose').onclick = () => closeOv('ovShare');
 // joten avataan sama ristikko omaan välilehteen julkisessa versiossa. Nappi vain kosketuslaitteella kehyksen sisällä.
 const kehyksessa = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
 $('bFull').hidden = !(kehyksessa && matchMedia('(pointer: coarse)').matches);
-$('bFull').onclick = () => { if (P) save(); window.open(`${PAGES}#${TASO}-${NRO}`, '_blank', 'noopener'); };
+// Tavallinen linkki (target=_top) eikä window.open: iPhonen Safari ja Chrome eivät avanneet ohjelmallista ikkunaa itchin kehyksestä (Mikko 13.11.2026)
+$('bFull').onclick = () => { if (P) save(); $('bFull').href = `${PAGES}#${TASO}-${NRO}`; };
 $('bChallenge').onclick = () => avaaJako(!!st.done);
 $('bChallengeWin').onclick = () => avaaJako(true);
 function naytaHaaste() {
