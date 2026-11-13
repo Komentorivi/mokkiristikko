@@ -286,7 +286,7 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
   <div class="hw" id="hw"></div>
   <div class="list" id="list"></div>
   <div class="foot">
-    <button id="bInstall" hidden>📲 Lisää puhelimeen</button>
+    <button id="bInstall" hidden>📲 Asenna puhelimeen</button>
     <button class="alt" id="bChallenge">Haasta kaveri</button>
     <button class="alt" id="bBoard" hidden>Tulokset</button>
     <button class="alt" id="bRules">Säännöt</button>
@@ -341,7 +341,7 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
 </div></div>
 
 <div class="ov" id="ovInstall" role="dialog" aria-modal="true" aria-labelledby="installH"><div class="box">
-  <h2 id="installH">Lisää puhelimeen</h2>
+  <h2 id="installH">Asenna puhelimeen</h2>
   <p>Mökkiristikko aukeaa kotivalikosta koko ruudulle kuin oma sovellus.</p>
   <ol class="steps" id="installSteps"></ol>
   <div class="btns"><button id="bInstallClose">Selvä</button></div>
@@ -991,7 +991,7 @@ $('bShareClose').onclick = () => closeOv('ovShare');
 const kehyksessa = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
 $('bFull').hidden = !(kehyksessa && matchMedia('(pointer: coarse)').matches);
 // Tavallinen linkki (target=_top) eikä window.open: iPhonen Safari ja Chrome eivät avanneet ohjelmallista ikkunaa itchin kehyksestä (Mikko 13.11.2026)
-/* Lisää puhelimeen: Android ja tietokoneen Chrome/Edge tarjoavat asennusikkunan (beforeinstallprompt),
+/* Asenna puhelimeen: Android ja tietokoneen Chrome/Edge tarjoavat asennusikkunan (beforeinstallprompt),
    iPhone ei salli sivun asentaa itseään, joten siellä näytetään ohje Jaa → Lisää Koti-valikkoon. */
 let asennus = null;
 const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -999,7 +999,7 @@ const asennettu = () => matchMedia('(display-mode: standalone)').matches || navi
 const kosketus = matchMedia('(pointer: coarse)').matches;
 function paivitaAsennus() {
   $('bInstall').hidden = kehyksessa || asennettu() || (!asennus && !kosketus);
-  $('bInstall').textContent = kosketus ? '📲 Lisää puhelimeen' : '💻 Asenna sovellukseksi';
+  $('bInstall').textContent = kosketus ? '📲 Asenna puhelimeen' : '💻 Asenna sovellukseksi';
 }
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); asennus = e; paivitaAsennus(); });
 window.addEventListener('appinstalled', () => { asennus = null; paivitaAsennus(); toast('Mökkiristikko lisätty'); });
