@@ -11,6 +11,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="kuvat/ikoni-192.png">
 <link rel="apple-touch-icon" href="kuvat/ikoni-192.png">
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mökkiristikko">
@@ -80,6 +81,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 @keyframes glint{from{opacity:.35}to{opacity:.9}}
 select{font:inherit;font-size:16px;font-weight:700;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px)}
 .icon{font-size:18px;padding:7px 10px;border-radius:12px;border:0;background:var(--chip);color:var(--ink);backdrop-filter:blur(6px);box-shadow:none}
+.steps{margin:12px 0 0;padding-left:1.3em;display:grid;gap:10px;font-size:17px;line-height:1.4}
+.steps li::marker{font-weight:800;color:var(--clue-ink)}
+.steps .ico{display:inline-flex;vertical-align:-4px;width:24px;height:24px;margin:0 2px;color:var(--clue-ink)}
 a.icon{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:800;line-height:1.2}
 
 /* Tila */
@@ -282,6 +286,7 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
   <div class="hw" id="hw"></div>
   <div class="list" id="list"></div>
   <div class="foot">
+    <button id="bInstall" hidden>📲 Lisää puhelimeen</button>
     <button class="alt" id="bChallenge">Haasta kaveri</button>
     <button class="alt" id="bBoard" hidden>Tulokset</button>
     <button class="alt" id="bRules">Säännöt</button>
@@ -333,6 +338,13 @@ a.btn:focus-visible{outline:3px solid var(--sel);outline-offset:2px}
     <button class="alt" id="bCopy">Kopioi teksti</button>
     <button class="alt" id="bShareClose">Sulje</button>
   </div>
+</div></div>
+
+<div class="ov" id="ovInstall" role="dialog" aria-modal="true" aria-labelledby="installH"><div class="box">
+  <h2 id="installH">Lisää puhelimeen</h2>
+  <p>Mökkiristikko aukeaa kotivalikosta koko ruudulle kuin oma sovellus.</p>
+  <ol class="steps" id="installSteps"></ol>
+  <div class="btns"><button id="bInstallClose">Selvä</button></div>
 </div></div>
 
 <div class="ov" id="ovBoard" role="dialog" aria-modal="true" aria-labelledby="boardH"><div class="box">
@@ -979,6 +991,40 @@ $('bShareClose').onclick = () => closeOv('ovShare');
 const kehyksessa = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
 $('bFull').hidden = !(kehyksessa && matchMedia('(pointer: coarse)').matches);
 // Tavallinen linkki (target=_top) eikä window.open: iPhonen Safari ja Chrome eivät avanneet ohjelmallista ikkunaa itchin kehyksestä (Mikko 13.11.2026)
+/* Lisää puhelimeen: Android ja tietokoneen Chrome/Edge tarjoavat asennusikkunan (beforeinstallprompt),
+   iPhone ei salli sivun asentaa itseään, joten siellä näytetään ohje Jaa → Lisää Koti-valikkoon. */
+let asennus = null;
+const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const asennettu = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const kosketus = matchMedia('(pointer: coarse)').matches;
+function paivitaAsennus() {
+  $('bInstall').hidden = kehyksessa || asennettu() || (!asennus && !kosketus);
+  $('bInstall').textContent = kosketus ? '📲 Lisää puhelimeen' : '💻 Asenna sovellukseksi';
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); asennus = e; paivitaAsennus(); });
+window.addEventListener('appinstalled', () => { asennus = null; paivitaAsennus(); toast('Mökkiristikko lisätty'); });
+const JAA = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+$('bInstall').onclick = async () => {
+  if (asennus) {
+    const e = asennus; asennus = null;
+    e.prompt();
+    try { await e.userChoice; } catch (err) {}
+    paivitaAsennus();
+    return;
+  }
+  const askeleet = iOS
+    ? [`Paina Jaa-painiketta ${JAA} (Safarissa alareunassa, Chromessa osoiterivin oikeassa reunassa).`,
+       'Vieritä valikkoa alas ja valitse <b>Lisää Koti-valikkoon</b>.',
+       'Paina oikeasta yläkulmasta <b>Lisää</b>.']
+    : ['Avaa selaimen valikko (⋮ oikeassa yläkulmassa).',
+       'Valitse <b>Asenna sovellus</b> tai <b>Lisää aloitusnäyttöön</b>.',
+       'Vahvista painamalla <b>Asenna</b>.'];
+  $('installSteps').innerHTML = askeleet.map(t => `<li>${t}</li>`).join('');
+  openOv('ovInstall');
+};
+$('bInstallClose').onclick = () => closeOv('ovInstall');
+if ('serviceWorker' in navigator && omaPalvelin()) navigator.serviceWorker.register('sw.js').catch(() => {});
+paivitaAsennus();
 $('bFull').onclick = () => { if (P) save(); $('bFull').href = `${PAGES}#${TASO}-${NRO}`; };
 $('bChallenge').onclick = () => avaaJako(!!st.done);
 $('bChallengeWin').onclick = () => avaaJako(true);
